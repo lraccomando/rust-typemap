@@ -30,29 +30,29 @@ impl TypeMap {
     }
 
     /// Insert a value into the map with a specified key type.
-    pub fn insert<K: Assoc<V> + 'static, V: 'static>(&mut self, val: V) -> bool {
+    pub fn insert<K: Assoc<V> + 'static, V: 'static>(&mut self, _key: K, val: V) -> bool {
         self.data.insert(TypeId::of::<K>(), box val as Box<Any>)
     }
 
     /// Find a value in the map and get a reference to it.
-    pub fn find<K: Assoc<V> + 'static, V: 'static>(&self) -> Option<&V> {
+    pub fn find<K: Assoc<V> + 'static, V: 'static>(&self, _key: K) -> Option<&V> {
         self.data.find(&TypeId::of::<K>()).and_then(|v| v.downcast_ref::<V>())
     }
 
     /// Find a value in the map and get a mutable reference to it.
-    pub fn find_mut<K: Assoc<V> + 'static, V: 'static>(&mut self) -> Option<&mut V> {
+    pub fn find_mut<K: Assoc<V> + 'static, V: 'static>(&mut self, _key: K) -> Option<&mut V> {
         self.data.find_mut(&TypeId::of::<K>()).and_then(|v| v.downcast_mut::<V>())
     }
 
     /// Check if a key has an associated value stored in the map.
-    pub fn contains<K: Assoc<V> + 'static, V: 'static>(&self) -> bool {
+    pub fn contains<K: Assoc<V> + 'static, V: 'static>(&self, _key: K) -> bool {
         self.data.contains_key(&TypeId::of::<K>())
     }
 
     /// Remove a value from the map.
     ///
     /// Returns `true` if a value was removed.
-    pub fn remove<K: Assoc<V> + 'static, V: 'static>(&mut self) -> bool {
+    pub fn remove<K: Assoc<V> + 'static, V: 'static>(&mut self, _key: K) -> bool {
         self.data.remove(&TypeId::of::<K>())
     }
 }
@@ -83,17 +83,44 @@ mod test {
 
     #[test] fn test_pairing() {
         let mut map = TypeMap::new();
-        map.insert::<Key, Value>(Value);
-        assert_eq!(*map.find::<Key, Value>().unwrap(), Value);
-        assert!(map.contains::<Key, Value>());
+        map.insert::<Key, Value>(Key, Value);
+        assert_eq!(*map.find::<Key, Value>(Key).unwrap(), Value);
+        assert!(map.contains::<Key, Value>(Key));
+    }
+
+    #[test] fn test_pairing_with_hashmap_syntax() {
+        let mut map = TypeMap::new();
+        map.insert(Key, Value);
+        assert_eq!(*map.find::<Key, Value>(Key).unwrap(), Value);
+        assert!(map.contains::<Key, Value>(Key));
+    }
+
+    #[test] fn test_finding_with_hashmap_syntax() {
+        let mut map = TypeMap::new();
+        map.insert(Key, Value);
+        assert_eq!(*map.find(Key).unwrap(), Value);
+    }
+
+    #[test] fn test_contains_with_hashmap_syntax() {
+        let mut map = TypeMap::new();
+        map.insert(Key, Value);
+        assert!(map.contains(Key));
     }
 
     #[test] fn test_remove() {
         let mut map = TypeMap::new();
-        map.insert::<Key, Value>(Value);
-        assert!(map.contains::<Key, Value>());
-        map.remove::<Key, Value>();
-        assert!(!map.contains::<Key, Value>());
+        map.insert::<Key, Value>(Key, Value);
+        assert!(map.contains::<Key, Value>(Key));
+        map.remove::<Key, Value>(Key);
+        assert!(!map.contains::<Key, Value>(Key));
+    }
+
+    #[test] fn test_remove_with_hashmap_syntax() {
+        let mut map = TypeMap::new();
+        map.insert(Key, Value);
+        assert!(map.contains(Key));
+        map.remove(Key);
+        assert!(!map.contains(Key));
     }
 }
 

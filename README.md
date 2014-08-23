@@ -23,8 +23,8 @@ impl Assoc<Value> for Key {}
 
 #[test] fn test_pairing() {
     let mut map = TypeMap::new();
-    map.insert::<Key, Value>(Value);
-    assert_eq!(*map.find::<Key, Value>().unwrap(), Value);
+    map.insert(Key, Value);
+    assert_eq!(*map.find(Key).unwrap(), Value);
 }
 ```
 
